@@ -70,10 +70,12 @@
 
 /* FILE TABLE */
 
-.app-files #filestable {
+#filestable {
 	position: relative;
+	top: 44px;
 	width: 100%;
 }
+
 /* make sure there's enough room for the file actions */
 #body-user #filestable {
 	min-width: 688px; /* 768 (mobile break) - 80 (nav width) */
@@ -82,14 +84,14 @@
 	min-width: 688px; /* 768 (mobile break) - 80 (nav width) */
 }
 
-/**
- * Override global #controls styles
- * to be more flexible / relative
- */
 .app-files #controls {
-	position: static;
-	left: auto;
 	top: auto;
+	left: 230px;
+	position: absolute;
+}
+
+.app-files.no-sidebar #controls {
+	left: 0px;
 }
 
 .app-files #app-navigation {
@@ -102,6 +104,10 @@
 
 .app-files #app-settings input {
 	width: 90%;
+}
+
+.app-files table.multiselect thead {
+	left: 230px;
 }
 
 #filestable tbody tr { background-color:#fff; height:40px; }
@@ -293,7 +299,7 @@ table td.filename form { font-size:14px; margin-left:48px; margin-right:48px; }
 
 /* Use label to have bigger clickable size for checkbox */
 #fileList tr td.filename>input[type="checkbox"] + label,
-#select_all + label {
+.select-all + label {
 	height: 50px;
 	position: absolute;
 	width: 50px;
@@ -307,10 +313,10 @@ table td.filename form { font-size:14px; margin-left:48px; margin-right:48px; }
 #fileList tr td.filename>input[type="checkbox"] + label {
 	left: 0;
 }
-#select_all + label {
+.select-all + label {
 	top: 0;
 }
-#select_all {
+.select-all {
 	position: absolute;
 	top: 18px;
 	left: 18px;

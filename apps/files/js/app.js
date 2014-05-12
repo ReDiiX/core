@@ -28,7 +28,11 @@
 			this.fileActions = OCA.Files.FileActions;
 			this.files = OCA.Files.Files;
 
-			this.fileList = new OCA.Files.FileList($('#app-content-files'));
+			this.fileList = new OCA.Files.FileList(
+				$('#app-content-files'), {
+					scrollContainer: $('#app-content')
+				}
+			);
 			this.files.initialize();
 			this.fileActions.registerDefaultActions(this.fileList);
 			this.fileList.setFileActions(this.fileActions);
@@ -58,7 +62,8 @@
 			OC.Util.History.addOnPopStateHandler(_.bind(this._onPopState, this));
 
 			// detect when app changed their current directory
-			$('#app-content>div').on('changeDirectory', _.bind(this._onDirectoryChanged, this));
+			$('#app-content').delegate('>div', 'changeDirectory', _.bind(this._onDirectoryChanged, this));
+			$('#app-content').delegate('>div', 'changeViewerMode', _.bind(this._onChangeViewerMode, this));
 
 			$('#app-navigation').on('itemChanged', _.bind(this._onNavigationChanged, this));
 		},
@@ -88,6 +93,16 @@
 		},
 
 		/**
+		 * Event handler for when an app notifies that it needs space
+		 * for viewer mode.
+		 */
+		_onChangeViewerMode: function(e) {
+			var state = !!e.viewerModeEnabled;
+			$('#app-navigation').toggleClass('hidden', state);
+			$('.app-files').toggleClass('viewer-mode no-sidebar', state);
+		},
+
+		/**
 		 * Event handler for when the URL changed
 		 */
 		_onPopState: function(params) {
@@ -96,6 +111,9 @@
 				view: 'files'
 			}, params);
 			var lastId = this.navigation.getActiveItem();
+			if (!this.navigation.itemExists(params.view)) {
+				params.view = 'files';
+			}
 			this.navigation.setActiveItem(params.view, {silent: true});
 			if (lastId !== this.navigation.getActiveItem()) {
 				this.navigation.getActiveContainer().trigger(new $.Event('show'));

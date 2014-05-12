@@ -16,8 +16,8 @@
 	 * A file list view consists of a controls bar and
 	 * a file list table.
 	 */
-	var FileList = function($el) {
-		this.initialize($el);
+	var FileList = function($el, options) {
+		this.initialize($el, options);
 	};
 	FileList.prototype = {
 		SORT_INDICATOR_ASC_CLASS: 'icon-triangle-s',
@@ -98,13 +98,15 @@
 		/**
 		 * Initialize the file list and its components
 		 */
-		initialize: function($el) {
+		initialize: function($el, options) {
 			var self = this;
+			options = options || {};
 			if (this.initialized) {
 				return;
 			}
 
 			this.$el = $el;
+			this.$container = options.scrollContainer || $(window);
 			this.$table = $el.find('table:first');
 			this.$fileList = $el.find('#fileList');
 			this.fileActions = OCA.Files.FileActions;
@@ -137,14 +139,13 @@
 			this.$fileList.on('click','td.filename>a.name', _.bind(this._onClickFile, this));
 			this.$fileList.on('change', 'td.filename>input:checkbox', _.bind(this._onClickFileCheckbox, this));
 			this.$el.on('urlChanged', _.bind(this._onUrlChanged, this));
-			this.$el.find('#select_all').click(_.bind(this._onClickSelectAll, this));
+			this.$el.find('.select-all').click(_.bind(this._onClickSelectAll, this));
 			this.$el.find('.download').click(_.bind(this._onClickDownloadSelected, this));
 			this.$el.find('.delete-selected').click(_.bind(this._onClickDeleteSelected, this));
 
 			this.setupUploadEvents();
 
-			// FIXME: only do this when visible
-			$(window).scroll(function(e) {self._onScroll(e);});
+			this.$container.on('scroll', _.bind(this._onScroll, this));
 		},
 
 		/**
@@ -182,7 +183,7 @@
 				delete this._selectedFiles[$tr.data('id')];
 				this._selectionSummary.remove(data);
 			}
-			this.$el.find('#select_all').prop('checked', this._selectionSummary.getTotal() === this.files.length);
+			this.$el.find('.select-all').prop('checked', this._selectionSummary.getTotal() === this.files.length);
 		},
 
 		/**
@@ -327,8 +328,12 @@
 			}
 		},
 
+		/**
+		 * Event handler for when scrolling the list container.
+		 * This appends/renders the next page of entries when reaching the bottom.
+		 */
 		_onScroll: function(e) {
-			if ($(window).scrollTop() + $(window).height() > $(document).height() - 500) {
+			if (this.$container.scrollTop() + this.$container.height() > this.$el.height() - 100) {
 				this._nextPage(true);
 			}
 		},
@@ -460,7 +465,7 @@
 			this.$fileList.empty();
 
 			// clear "Select all" checkbox
-			this.$el.find('#select_all').prop('checked', false);
+			this.$el.find('.select-all').prop('checked', false);
 
 			this.isEmpty = this.files.length === 0;
 			this._nextPage();
@@ -832,7 +837,7 @@
 			var self = this;
 			this._selectedFiles = {};
 			this._selectionSummary.clear();
-			this.$el.find('#select_all').prop('checked', false);
+			this.$el.find('.select-all').prop('checked', false);
 			this.showMask();
 			if (this._reloadCall) {
 				this._reloadCall.abort();
@@ -873,13 +878,17 @@
 
 			// TODO: should rather return upload file size through
 			// the files list ajax call
-			Files.updateStorageStatistics(true);
+			this.updateStorageStatistics(true);
 
 			if (result.data.permissions) {
 				this.setDirectoryPermissions(result.data.permissions);
 			}
 
 			this.setFiles(result.data.files);
+		},
+
+		updateStorageStatistics: function(force) {
+			Files.updateStorageStatistics(this.getCurrentDirectory(), force);
 		},
 
 		getAjaxUrl: function(action, params) {
@@ -994,6 +1003,7 @@
 		setViewerMode: function(show){
 			this.showActions(!show);
 			this.$el.find('#filestable').toggleClass('hidden', show);
+			this.$el.trigger(new $.Event('changeViewerMode', {viewerModeEnabled: show}));
 		},
 		/**
 		 * Removes a file entry from the list
@@ -1299,7 +1309,7 @@
 							self.updateEmptyContent();
 							self.fileSummary.update();
 							self.updateSelectionSummary();
-							Files.updateStorageStatistics();
+							self.updateStorageStatistics();
 						} else {
 							if (result.status === 'error' && result.data.message) {
 								OC.Notification.show(result.data.message);
@@ -1437,7 +1447,7 @@
 		 * @return true if all files are selected, false otherwise
 		 */
 		isAllSelected: function() {
-			return this.$el.find('#select_all').prop('checked');
+			return this.$el.find('.select-all').prop('checked');
 		},
 
 		/**

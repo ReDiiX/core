@@ -15,13 +15,8 @@
 (function() {
 	var Files = {
 		// file space size sync
-		_updateStorageStatistics: function() {
-			// FIXME
-			console.warn('FIXME: storage statistics!');
-			return;
-			Files._updateStorageStatisticsTimeout = null;
-			var currentDir = OCA.Files.FileList.getCurrentDirectory(),
-				state = Files.updateStorageStatistics;
+		_updateStorageStatistics: function(currentDir) {
+			var state = Files.updateStorageStatistics;
 			if (state.dir){
 				if (state.dir === currentDir) {
 					return;
@@ -36,20 +31,26 @@
 				Files.updateMaxUploadFilesize(response);
 			});
 		},
-		updateStorageStatistics: function(force) {
+		/**
+		 * Update storage statistics such as free space, max upload,
+		 * etc based on the given directory.
+		 *
+		 * Note this function is debounced to avoid making too
+		 * many ajax calls in a row.
+		 *
+		 * @param dir directory
+		 * @param force whether to force retrieving
+		 */
+		updateStorageStatistics: function(dir, force) {
 			if (!OC.currentUser) {
 				return;
 			}
 
-			// debounce to prevent calling too often
-			if (Files._updateStorageStatisticsTimeout) {
-				clearTimeout(Files._updateStorageStatisticsTimeout);
-			}
 			if (force) {
-				Files._updateStorageStatistics();
+				Files._updateStorageStatistics(dir);
 			}
 			else {
-				Files._updateStorageStatisticsTimeout = setTimeout(Files._updateStorageStatistics, 250);
+				Files._updateStorageStatisticsDebounced(dir);
 			}
 		},
 
@@ -275,18 +276,19 @@
 			setTimeout(Files.displayStorageWarnings, 100);
 			OC.Notification.setDefault(Files.displayStorageWarnings);
 
-			// only possible at the moment if user is logged in
-			if (OC.currentUser) {
+			// only possible at the moment if user is logged in or the files app is loaded
+			if (OC.currentUser && OCA.Files.App) {
 				// start on load - we ask the server every 5 minutes
 				var updateStorageStatisticsInterval = 5*60*1000;
-				var updateStorageStatisticsIntervalId = setInterval(Files.updateStorageStatistics, updateStorageStatisticsInterval);
+				var updateStorageStatisticsIntervalId = setInterval(OCA.Files.App.fileList.updateStorageStatistics, updateStorageStatisticsInterval);
 
+				// TODO: this should also stop when switching to another view
 				// Use jquery-visibility to de-/re-activate file stats sync
 				if ($.support.pageVisibility) {
 					$(document).on({
 						'show.visibility': function() {
 							if (!updateStorageStatisticsIntervalId) {
-								updateStorageStatisticsIntervalId = setInterval(Files.updateStorageStatistics, updateStorageStatisticsInterval);
+								updateStorageStatisticsIntervalId = setInterval(OCA.Files.App.fileList.updateStorageStatistics, updateStorageStatisticsInterval);
 							}
 						},
 						'hide.visibility': function() {
@@ -314,6 +316,7 @@
 		}
 	}
 
+	Files._updateStorageStatisticsDebounced = _.debounce(Files._updateStorageStatistics, 250);
 	OCA.Files.Files = Files;
 })();
 
@@ -349,7 +352,9 @@ function scanFiles(force, dir, users) {
 	scannerEventSource.listen('done',function(count) {
 		scanFiles.scanning=false;
 		console.log('done after ' + count + ' files');
-		OCA.Files.Files.updateStorageStatistics();
+		if (OCA.Files.App) {
+			OCA.Files.App.fileList.updateStorageStatistics(true);
+		}
 	});
 	scannerEventSource.listen('user',function(user) {
 		console.log('scanning files for ' + user);

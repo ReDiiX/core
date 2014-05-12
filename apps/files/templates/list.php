@@ -18,19 +18,14 @@
 				</ul>
 			</div>
 			<?php endif;?>
-			<div id="upload" class="button"
-				 title="<?php p($l->t('Upload (max. %s)', array($_['uploadMaxHumanFilesize']))) ?>">
-					<?php if($_['uploadMaxFilesize'] >= 0):?>
-					<input type="hidden" id="max_upload" name="MAX_FILE_SIZE" value="<?php p($_['uploadMaxFilesize']) ?>">
-					<?php endif;?>
+			<div id="upload" class="button">
+					<input type="hidden" id="max_upload" name="MAX_FILE_SIZE" value="">
 					<input type="hidden" id="upload_limit" value="<?php p($_['uploadLimit']) ?>">
-					<input type="hidden" id="free_space" value="<?php p($_['freeSpace']) ?>">
+					<input type="hidden" id="free_space" value="">
 					<?php if(isset($_['dirToken'])):?>
 					<input type="hidden" id="publicUploadRequestToken" name="requesttoken" value="<?php p($_['requesttoken']) ?>" />
 					<input type="hidden" id="dirToken" name="dirToken" value="<?php p($_['dirToken']) ?>" />
 					<?php endif;?>
-					<input type="hidden" class="max_human_file_size"
-						   value="(max <?php p($_['uploadMaxHumanFilesize']); ?>)">
 					<input type="file" id="file_upload_start" name='files[]'
 						   data-url="<?php print_unescaped(OCP\Util::linkTo('files', 'ajax/upload.php')); ?>" />
 					<a href="#" class="svg icon-upload"></a>
@@ -56,8 +51,8 @@
 		<tr>
 			<th id='headerName' class="hidden column-name">
 				<div id="headerName-container">
-					<input type="checkbox" id="select_all" />
-					<label for="select_all"></label>
+					<input type="checkbox" id="select_all_files" class="select-all"/>
+					<label for="select_all_files"></label>
 					<a class="name sort columntitle" data-sort="name"><span><?php p($l->t( 'Name' )); ?></span><span class="sort-indicator"></span></a>
 					<span id="selectedActionsList" class="selectedActions">
 						<?php if($_['allowZipDownload']) : ?>
@@ -88,6 +83,7 @@
 	<tfoot>
 	</tfoot>
 </table>
+<input type="hidden" name="allowZipDownload" id="allowZipDownload" value="<?php p($_['allowZipDownload']); ?>" />
 <div id="editor"></div><!-- FIXME Do not use this div in your app! It is deprecated and will be removed in the future! -->
 <div id="uploadsize-message" title="<?php p($l->t('Upload too large'))?>">
 	<p>

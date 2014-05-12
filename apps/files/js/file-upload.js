@@ -460,7 +460,7 @@ OC.Upload = {
 
 					$('#uploadprogresswrapper input.stop').fadeOut();
 					$('#uploadprogressbar').fadeOut();
-					Files.updateStorageStatistics();
+					FileList.updateStorageStatistics();
 				});
 				fileupload.on('fileuploadfail', function(e, data) {
 					OC.Upload.log('progress handle fileuploadfail', e, data);
