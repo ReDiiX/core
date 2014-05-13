@@ -1525,7 +1525,7 @@
 					};
 				} else {
 					// cancel uploads to current dir if no permission
-					var isCreatable = (this.getDirectoryPermissions() & OC.PERMISSION_CREATE) !== 0;
+					var isCreatable = (self.getDirectoryPermissions() & OC.PERMISSION_CREATE) !== 0;
 					if (!isCreatable) {
 						return false;
 					}

@@ -24,7 +24,6 @@
 			this.navigation = new OCA.Files.Navigation($('#app-navigation'));
 
 			// TODO: ideally these should be in a separate class / app (the embedded "all files" app)
-			this.fileList = OCA.Files.FileList;
 			this.fileActions = OCA.Files.FileActions;
 			this.files = OCA.Files.Files;
 

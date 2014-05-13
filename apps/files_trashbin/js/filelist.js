@@ -99,6 +99,10 @@
 			return OC.filePath('files_trashbin', 'ajax', action + '.php') + q;
 		},
 
+		setupUploadEvents: function() {
+			// override and do nothing
+		},
+
 		linkTo: function(dir){
 			return OC.linkTo('files', 'index.php')+"?view=trashbin&dir="+ encodeURIComponent(dir).replace(/%2F/g, '/');
 		},
